@@ -1,48 +1,56 @@
-name: Instagram Posting
-
+name: Instagram Bot
 on:
   schedule:
-    # Runs every 15 minutes
-    - cron: '*/15 * * * *'
+    - cron: "*/15 * * * *"   # every 5 minutes
   workflow_dispatch:
 
 jobs:
-  post:
+  run-bot:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-
-      - name: Cache pip packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+          python-version: '3.11'
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          sudo apt-get update
-          sudo apt-get install -y unzip xvfb libxi6 libgconf-2-4 \
-              libnss3 libxss1 libappindicator1 libindicator7 fonts-liberation \
-              wget curl
-          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-          sudo apt install -y ./google-chrome-stable_current_amd64.deb
 
-      - name: Run Instagram Bot
+      - name: Install Chrome & dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libnss3 \
+            libxss1 \
+            libatk-bridge2.0-0 \
+            libatk1.0-0 \
+            libdrm2 \
+            libgbm1 \
+            libasound2 \
+            libxkbcommon0 \
+            libgtk-3-0 \
+            libayatana-appindicator3-1 \
+            fonts-liberation \
+            unzip \
+            wget \
+            xvfb
+
+          # Install latest Chrome
+          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo apt-get install -y ./google-chrome-stable_current_amd64.deb
+          google-chrome --version
+
+      - name: Run bot
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-          INSTA_USERNAME: ${{ secrets.INSTA_USERNAME }}
-          INSTA_PASSWORD: ${{ secrets.INSTA_PASSWORD }}
+          INSTAGRAM_USERNAME: ${{ secrets.INSTAGRAM_USERNAME }}
+          INSTAGRAM_PASSWORD: ${{ secrets.INSTAGRAM_PASSWORD }}
         run: |
-          xvfb-run python bot.py
+          python bot.py

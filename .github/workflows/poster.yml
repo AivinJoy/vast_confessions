@@ -2,7 +2,8 @@ name: Instagram Posting
 
 on:
   schedule:
-    - cron: '*/15 * * * *'  # Every 15 minutes
+    # Runs every 15 minutes
+    - cron: '*/15 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -18,16 +19,22 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Cache pip packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          # Install Chrome dependencies
           sudo apt-get update
           sudo apt-get install -y unzip xvfb libxi6 libgconf-2-4 \
               libnss3 libxss1 libappindicator1 libindicator7 fonts-liberation \
               wget curl
-          # Install Google Chrome
           wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
           sudo apt install -y ./google-chrome-stable_current_amd64.deb
 

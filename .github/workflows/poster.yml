@@ -1,8 +1,10 @@
 name: Instagram Bot
+
 on:
   schedule:
-    - cron: "*/5 * * * *"   # every 5 minutes
-  workflow_dispatch:
+    # Runs every 15 minutes (adjust if needed)
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Manual trigger
 
 jobs:
   run-bot:
@@ -17,12 +19,33 @@ jobs:
         with:
           python-version: "3.11"
 
+      # --- Ensure necessary folders exist before caching ---
+      - name: Create necessary folders
+        run: |
+          mkdir -p sessions
+          mkdir -p temp_images
+
+      # --- Cache pip dependencies ---
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # --- Cache Instagram session securely ---
+      - name: Cache Instagram Session
+        uses: actions/cache@v3
+        with:
+          path: sessions
+          key: ${{ runner.os }}-insta-session-${{ secrets.INSTAGRAM_USERNAME }}
+
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # Install a ready-to-use Chrome + chromedriver
       - name: Set up Chrome
         uses: browser-actions/setup-chrome@v1
 
@@ -30,7 +53,14 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-          INSTAGRAM_USERNAME: ${{ secrets.INSTAGRAM_USERNAME }}
-          INSTAGRAM_PASSWORD: ${{ secrets.INSTAGRAM_PASSWORD }}
-        run: |
-          python bot.py
+          INSTA_USERNAME: ${{ secrets.INSTAGRAM_USERNAME }}
+          INSTA_PASSWORD: ${{ secrets.INSTAGRAM_PASSWORD }}
+        run: python bot.py
+
+      # --- Upload screenshots if any step fails ---
+      - name: Upload Screenshots on Failure
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: error-screenshots
+          path: ./*.png

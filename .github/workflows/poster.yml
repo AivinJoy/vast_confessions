@@ -60,7 +60,7 @@ jobs:
       # --- Upload screenshots if any step fails ---
       - name: Upload Screenshots on Failure
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: error-screenshots
           path: ./*.png

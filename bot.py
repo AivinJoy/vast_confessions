@@ -195,7 +195,7 @@ def process_one_confession():
         options = webdriver.ChromeOptions()
         options.add_argument("--start-maximized")
         options.add_argument("--disable-notifications")
-        # options.add_argument("--headless=new")
+        options.add_argument("--headless=new")
         options.add_argument("--window-size=1920,1080")
         options.add_argument("--disable-gpu")
         options.add_argument("--no-sandbox")
@@ -204,7 +204,7 @@ def process_one_confession():
         options.add_argument("--no-first-run") # Suppress the "What's new in Chrome" page and other first-run wizards.
         options.add_argument("--no-default-browser-check") # Disables the check to see if Chrome is the default browser.
         options.add_argument("--disable-features=TranslateUI,AutomationControlled")
-        options.add_argument(f"--user-data-dir=/tmp/chrome_user_{int(time.time())}")
+        
         service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=options)
         wait = WebDriverWait(driver, 20)

@@ -1,4 +1,2 @@
 supabase
-selenium
-webdriver-manager
 requests

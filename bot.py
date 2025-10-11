@@ -76,7 +76,7 @@ def post_to_instagram_api(image_url, caption):
 
 
 def process_one_confession():
-    """Fetch a queued confession, post via API, and update status."""
+    """Fetch a queued confession, post via API, update status, and delete from storage."""
     supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
     confession_id = None # Initialize to handle early errors
 
@@ -94,12 +94,37 @@ def process_one_confession():
 
         print(f"Processing confession #{confession_id}...")
 
-        # Post to Instagram using the new API function
+        # Post to Instagram using the API function
         post_successful = post_to_instagram_api(image_url, content)
 
         if post_successful:
+            # First, update the database record
             supabase.table('confessions').update({'status': 'posted'}).eq('id', confession_id).execute()
             print(f"Updated confession #{confession_id} status to 'posted'.")
+
+            # --- NEW: DELETE IMAGE FROM SUPABASE STORAGE ---
+            print("Attempting to delete image from Supabase Storage...")
+            
+            # IMPORTANT: Replace 'YOUR_BUCKET_NAME' with your actual bucket name from Supabase.
+            # This is often 'confessions', 'images', 'public', etc.
+            bucket_name = 'YOUR_BUCKET_NAME' 
+            
+            try:
+                # Extract the file path from the full URL.
+                # Example URL: https://<ref>.supabase.co/storage/v1/object/public/YOUR_BUCKET_NAME/image.jpg
+                # The part we need is "image.jpg"
+                path_to_delete = image_url.split(f'{bucket_name}/')[-1]
+
+                # Use the storage client to remove the file
+                # Note the underscore in from_() because from is a Python keyword
+                supabase.storage.from_(bucket_name).remove([path_to_delete])
+                print(f"✅ Successfully deleted '{path_to_delete}' from Supabase Storage.")
+
+            except Exception as e:
+                # This ensures that even if deletion fails, the bot doesn't crash.
+                print(f"⚠️ Could not delete image from storage. It will need manual cleanup. Error: {e}")
+            # --- END OF NEW CODE ---
+
         else:
             supabase.table('confessions').update({'status': 'failed'}).eq('id', confession_id).execute()
             print(f"Updated confession #{confession_id} status to 'failed'.")
@@ -107,7 +132,6 @@ def process_one_confession():
     except Exception as e:
         print(f"An error occurred in the main process: {e}")
         if confession_id:
-            # If we know which confession failed, mark it as failed
             supabase.table('confessions').update({'status': 'failed'}).eq('id', confession_id).execute()
             print(f"Updated confession #{confession_id} status to 'failed' due to an unexpected error.")
 

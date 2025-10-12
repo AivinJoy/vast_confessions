@@ -22,6 +22,6 @@ loginForm.addEventListener('submit', async (event) => {
         // If login is successful, this block runs
         console.log('Login successful! User data:', data); // See the user data
         console.log("Redirecting to index.html...");
-        window.location.href = 'index.html'; 
+        window.location.href = 'https://vast-confessions.netlify.app/';
     }
 });

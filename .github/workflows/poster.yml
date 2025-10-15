@@ -1,4 +1,4 @@
-# name: Instagram API Bot
+name: Instagram API Bot
 
 on:
   schedule:
@@ -29,6 +29,7 @@ jobs:
           # These secrets are from your GitHub repository settings
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SUPABASE_BUCKET_NAME: ${{ secrets.SUPABASE_BUCKET_NAME }}
           INSTA_BUSINESS_ACCOUNT_ID: ${{ secrets.INSTA_BUSINESS_ACCOUNT_ID }}
           INSTA_GRAPH_API_ACCESS_TOKEN: ${{ secrets.INSTA_GRAPH_API_ACCESS_TOKEN }}
         run: python bot.py
